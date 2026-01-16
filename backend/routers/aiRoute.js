@@ -1,3 +1,8 @@
-import Document from "../model/Document";
-import * as geminiService from '../utils/geminiService.js';
-import { findRelevantChunks } from "../utils/textChunker.js";
+import express from "express";
+import { generaetFlashCards } from "../controller/aiController.js";
+
+const router = express.Router();
+
+router.get("/", generaetFlashCards);
+
+export default router;

@@ -7,6 +7,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
 import documentRoute from './routers/documentRoute.js'
+import aiRoute from './routers/aiRoute.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,6 +31,7 @@ app.use(express.urlencoded({ extended: true}));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.use('/api/document', documentRoute);
+app.use('/api/ai', aiRoute);
 
 app.use((req, res) => {
     res.status(404).json({
