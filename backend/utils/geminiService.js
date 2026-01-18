@@ -1,9 +1,9 @@
-import dotenv from 'dotenv'
-import {GoogleGenAI } from "@google/genai"
+import dotenv from "dotenv";
+import { GoogleGenAI } from "@google/genai";
 
 dotenv.config();
 
-const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 /**
  * Generate flashcards from text
@@ -13,7 +13,7 @@ const ai = new GoogleGenAI({apiKey: process.env.GEMINI_API_KEY})
  */
 
 export const generateFlashCard = async (text, count = 10) => {
-    const prompt = `
+  const prompt = `
 Generate exactly ${count} educational flashcards from the following text.
 
 Format:
@@ -27,47 +27,47 @@ Text:
 ${text.substring(0, 15000)}
 `;
 
-try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-lite",
-            contents: prompt
-        });
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
 
-        const generatedText = response?.candidates?.[0]?.content?.parts
-            ?.map(p => p.text || '')
-            .join('');
+    const generatedText = response?.candidates?.[0]?.content?.parts
+      ?.map((p) => p.text || "")
+      .join("");
 
-        if (!generatedText) return [];
+    if (!generatedText) return [];
 
-        const blocks = generatedText.split('---').filter(b => b.trim());
-        const flashcards = [];
+    const blocks = generatedText.split("---").filter((b) => b.trim());
+    const flashcards = [];
 
-        for (const block of blocks) {
-            let question = '', answer = '', difficulty = 'medium';
+    for (const block of blocks) {
+      let question = "",
+        answer = "",
+        difficulty = "medium";
 
-            for (const line of block.split('\n')) {
-                const t = line.trim();
-                if (t.startsWith('Q:')) question = t.slice(2).trim();
-                if (t.startsWith('A:')) answer = t.slice(2).trim();
-                if (t.startsWith('D:')) {
-                    const d = t.slice(2).trim().toLowerCase();
-                    if (['easy', 'medium', 'hard'].includes(d)) difficulty = d;
-                }
-            }
-
-            if (question && answer) {
-                flashcards.push({ question, answer, difficulty });
-            }
+      for (const line of block.split("\n")) {
+        const t = line.trim();
+        if (t.startsWith("Q:")) question = t.slice(2).trim();
+        if (t.startsWith("A:")) answer = t.slice(2).trim();
+        if (t.startsWith("D:")) {
+          const d = t.slice(2).trim().toLowerCase();
+          if (["easy", "medium", "hard"].includes(d)) difficulty = d;
         }
+      }
 
-        return flashcards.slice(0, count);
-
-    } catch (error) {
-        console.error("Gemini error:", error);
-        return [];
+      if (question && answer) {
+        flashcards.push({ question, answer, difficulty });
+      }
     }
-};
 
+    return flashcards.slice(0, count);
+  } catch (error) {
+    console.error("Gemini error:", error);
+    return [];
+  }
+};
 
 /**
  * Generate quie questions
@@ -77,14 +77,14 @@ try {
  */
 
 export const generateQuize = async (text, numberQuestions = 5) => {
-    const prompt = `Generate exactly ${numberQuestions} multiple choice questions from the following text.
+  const prompt = `Generate exactly ${numberQuestions} multiple choice questions from the following text.
     Format each qestion as: 
     Q: [Question]
     Q1: [Option 1]
     Q2: [Option 2]
     Q3: [Option 3]
     Q4: [Option 4]
-    C: [Correct option - exactly as written above]
+    C: [Correct option number ONLY: Q1, Q2, Q3, or Q4]
     E: [Brief explanation]
     D: [Difficulty: easy, medium, or hard]
     
@@ -92,46 +92,60 @@ export const generateQuize = async (text, numberQuestions = 5) => {
     
     Text
     ${text.substring(0, 15000)}`;
-    
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-lite",
-            contents: prompt
-        });
 
-        const generatedText = response.text();
-        const blocks = generatedText.split('---').filter(b => b.trim());
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
 
-        const questions = [];
+    // ✅ EXTRACT TEXT CORRECTLY
+    const generatedText = response?.candidates?.[0]?.content?.parts
+      ?.map((p) => p.text || "")
+      .join("");
 
-        for (const block of blocks) {
-            const lines = block.split('\n');
-            let q = '', options = [], correctAnswer = '', explanation = '', difficulty = 'medium';
+    if (!generatedText) return [];
 
-            for (const line of lines) {
-                const t = line.trim();
-                if (t.startsWith('Q:')) q = t.slice(2).trim();
-                else if (t.match(/^Q[1-4]:/)) options.push(t.slice(3).trim());
-                else if (t.startsWith('C:')) correctAnswer = t.slice(2).trim();
-                else if (t.startsWith('E:')) explanation = t.slice(2).trim();
-                else if (t.startsWith('D:')) {
-                    const d = t.slice(2).trim().toLowerCase();
-                    if (['easy', 'medium', 'hard'].includes(d)) difficulty = d;
-                }
-            }
+    const blocks = generatedText.split("---").filter((b) => b.trim());
+    const questions = [];
 
-            if (q && options.length === 4 && correctAnswer) {
-                questions.push({ question: q, options, correctAnswer, explanation, difficulty });
-            }
+    for (const block of blocks) {
+      const lines = block.split("\n");
+      let q = "",
+        options = [],
+        correctAnswer = "",
+        explanation = "",
+        difficulty = "medium";
+
+      for (const line of lines) {
+        const t = line.trim();
+        if (t.startsWith("Q:")) q = t.slice(2).trim();
+        else if (t.match(/^Q[1-4]:/)) options.push(t.slice(3).trim());
+        else if (t.startsWith("C:")) correctAnswer = t.slice(2).trim();
+        else if (t.startsWith("E:")) explanation = t.slice(2).trim();
+        else if (t.startsWith("D:")) {
+          const d = t.slice(2).trim().toLowerCase();
+          if (["easy", "medium", "hard"].includes(d)) difficulty = d;
         }
+      }
 
-        return questions.slice(0, numberQuestions);
-
-    } catch (error) {
-        console.error(error);
-        return [];
+      if (q && options.length === 4 && correctAnswer) {
+        questions.push({
+          question: q,
+          options,
+          correctAnswer,
+          explanation,
+          difficulty,
+        });
+      }
     }
-}
+
+    return questions.slice(0, numberQuestions);
+  } catch (error) {
+    console.error("Gemini Quiz Error:", error);
+    return [];
+  }
+};
 
 /**
  * Generate summary
@@ -140,22 +154,22 @@ export const generateQuize = async (text, numberQuestions = 5) => {
  */
 
 export const generateSummary = async (text) => {
-    const prompt = `Provide a  concise summary of the following text, highlighting the key concept, main ideas, and import points
+  const prompt = `Provide a  concise summary of the following text, highlighting the key concept, main ideas, and import points
     Keep the summery clear and structured.
     
     Text:
     ${text.substring(0, 2000)}`;
 
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-lite",
-            contents: prompt,
-        });
-        return response.text;
-    } catch (error) {
-        console.log(error);
-    }
-}
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+    return response.text;
+  } catch (error) {
+    console.log(error);
+  }
+};
 
 /**
  * Chat with document context
@@ -165,26 +179,32 @@ export const generateSummary = async (text) => {
  */
 
 export const chatWithContext = async (question, chunks) => {
-    const context = chunks.map((c, i) => `[Chunk ${i + 1}]\n${c.contents}`).join('\n\n');
-    console.log("context____", context);
+  try {
+    const context = chunks
+      .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
+      .join("\n\n");
 
-    const prompt = `Based on the following context form a document, Analyse the context and answer the user's question
-    If the answer is not in the context, say so.
-    
-    Context:
-    ${context}
-    
-    Question: ${question}
-    
-    Answer:`;
+    const prompt = `Answer strictly from the document context.
+                If not found, say so.
 
-    try {
-        const response = await ai.models.generateContent({
-            model: "gemini-2.5-flash-lite",
-            contents: prompt,
-        });
-        return response.text;
-    } catch (error) {
-        console.log('error');
+                Context:
+                ${context}
+
+                Question: ${question}
+
+                Answer:
+                `;
+
+    const response = await ai.models.generateContent({
+      model: "gemini-2.5-flash-lite",
+      contents: prompt,
+    });
+
+    return response.text;
+  } catch (error) {
+    if (error.status === 429) {
+      return "⚠️ AI rate limit reached. Please try again in a minute.";
     }
-}
+    throw error;
+  }
+};

@@ -1,39 +1,48 @@
 import mongoose from "mongoose";
 
-const quizeSchema = new mongoose.Schema(
+const quizSchema = new mongoose.Schema(
   {
     documentId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Document",
       required: true,
+      index: true,
     },
-    title: {
-      type: String,
-      required: true,
-      trim: true,
-    },
+
     questions: [
       {
         question: {
           type: String,
           required: true,
+          trim: true,
         },
+
         options: {
           type: [String],
           required: true,
-          validate: [
-            (array) => array.length === 4,
-            "Must have exactly 4 options",
-          ],
+          validate: {
+            validator: (arr) => arr.length === 4,
+            message: "Must have exactly 4 options",
+          },
         },
+
         correctAnswer: {
           type: String,
           required: true,
+          validate: {
+            validator: function (value) {
+              return this.options.includes(value);
+            },
+            message: "Correct answer must be one of the options",
+          },
         },
+
         explanation: {
           type: String,
           default: "",
+          trim: true,
         },
+
         difficulty: {
           type: String,
           enum: ["easy", "medium", "hard"],
@@ -41,46 +50,10 @@ const quizeSchema = new mongoose.Schema(
         },
       },
     ],
-    userAnswer: [
-      {
-        questionIndex: {
-          type: Number,
-          required: true,
-        },
-        selectedAnswer: {
-          type: String,
-          required: true,
-        },
-        isCorrect: {
-          type: Boolean,
-          required: true,
-        },
-        answeredAt: {
-          type: Date,
-          default: Date.now,
-        },
-      },
-    ],
-    score: {
-      type: Number,
-      default: 0,
-    },
-    totalQuestion: {
-      type: Number,
-      required: true,
-    },
-    completedAt: {
-      type: Date,
-      default: null,
-    },
   },
   {
-    timmeStamps: true,
+    timestamps: true,
   }
 );
 
-quizeSchema.index({documentId: 1});
-
-const Quiz = mongoose.model('Quiz', quizeSchema);
-
-export default Quiz;
+export default mongoose.model("Quiz", quizSchema);

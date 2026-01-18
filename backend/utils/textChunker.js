@@ -167,7 +167,7 @@ export const findRelevantChunks = (chunks, query, maxChunks = 5) => {
      -------------------------------------------------- */
 
   const scoredChunks = chunks.map((chunk, index) => {
-    const content = chunk.content.toLowerCase();
+    const content = (chunk.content ?? chunk.contents ?? '').toLowerCase();
     const contentWordCount = content.split(/\s+/).length;
 
     let score = 0;
@@ -200,7 +200,7 @@ export const findRelevantChunks = (chunks, query, maxChunks = 5) => {
     const positionBonus = 1 - index / chunks.length;
 
     return {
-      ...chunk,
+      ...chunk.toObject(),
       score: normalizedScore * positionBonus,
       matchedWords,
     };
