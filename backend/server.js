@@ -6,8 +6,11 @@ import core from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import connectDB from './config/db.js';
-import documentRoute from './routers/documentRoute.js'
-import aiRoute from './routers/aiRoute.js'
+import documentRoute from './routers/documentRoute.js';
+import chatRoute from './routers/chatRoute.js';
+import flshRoute from './routers/flashcardRoute.js';
+import quizRoute from './routers/quizeRoute.js'
+import summaryRoute from './routers/summaryRoute.js'
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -30,8 +33,11 @@ app.use(express.urlencoded({ extended: true}));
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-app.use('/api/document', documentRoute);
-app.use('/api/ai', aiRoute);
+app.use('/api/documents', documentRoute);
+app.use('/api/chat', chatRoute);
+app.use('/api/flashcards', flshRoute);
+app.use('/api/quizzes', quizRoute);
+app.use('/api/summaries', summaryRoute);
 
 app.use((req, res) => {
     res.status(404).json({

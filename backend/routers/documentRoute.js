@@ -1,11 +1,10 @@
 import express from "express";
-import {uploadDoc,getDoc} from '../controller/documentController.js'
+import {uploadDoc, createNewDoc} from '../controller/documentController.js'
 import upload from "../config/multer.js";
 
 const router = express.Router();
 
-router.post("/upload", upload.single("file"), uploadDoc);
-router.get("/", getDoc);
-router.get("/:id", getDoc);
+router.post("/", createNewDoc);
+router.post("/:id", upload.single("file"), uploadDoc);;
 
 export default router;
