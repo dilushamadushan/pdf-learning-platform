@@ -1,28 +1,40 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, Copy, CheckCircle } from 'lucide-react';
-import {  } from '../services/api';
-import { useDocuments } from '../context/DocumentContext';
+import api from '../services/api';
 
 const Summary = ({ documentId }) => {
-  const { documents, addSummary } = useDocuments();
+  const [summary, setSummary] = useState(null); 
   const [generating, setGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const currentDoc = documents.find(d => d.id === documentId);
-  const summaries = currentDoc?.summaries || [];
-  const summary = summaries[0]; // Only keep the latest summary
-  const pdfFile = currentDoc?.pdfFile;
+  useEffect(() => {
+    const fetchSummary = async () => {
+      if (!documentId) return;
+      try {
+        const res = await api.get(`/summaries/${documentId}`);
+        if (res.data.success && res.data.data.length > 0) {
+          setSummary(res.data.data[0]);
+        }
+      } catch (err) {
+        console.error('Failed to load summary', err);
+      }
+    };
+    fetchSummary();
+  }, [documentId]);
 
   const handleGenerate = async () => {
-    if (!pdfFile) {
-      alert('Please upload a PDF first');
+    if (!documentId) {
+      alert('Document not found');
       return;
     }
 
     setGenerating(true);
     try {
-      const response = await apiService.generateSummary(documentId, pdfFile);
-      addSummary(documentId, response.summary);
+      await api.post('/summaries/generate', { documentId });
+      const res = await api.get(`/summaries/${documentId}`);
+      if (res.data.success && res.data.data.length > 0) {
+        setSummary(res.data.data[0]); 
+      }
     } catch (error) {
       console.error('Failed to generate summary:', error);
       alert('Failed to generate summary');
@@ -32,7 +44,8 @@ const Summary = ({ documentId }) => {
   };
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(summary.text);
+    if (!summary) return;
+    navigator.clipboard.writeText(summary.content); 
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -43,9 +56,9 @@ const Summary = ({ documentId }) => {
         <h2 className="text-2xl font-bold font-display">Summary</h2>
         <button
           onClick={handleGenerate}
-          disabled={!pdfFile || generating}
+          disabled={generating}
           className={`btn-primary flex items-center gap-2 ${
-            (!pdfFile || generating) ? 'opacity-50 cursor-not-allowed' : ''
+            generating ? 'opacity-50 cursor-not-allowed' : ''
           }`}
         >
           <Sparkles className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
@@ -72,7 +85,8 @@ const Summary = ({ documentId }) => {
               <div>
                 <h3 className="text-lg font-semibold mb-1">Document Summary</h3>
                 <p className="text-sm text-white/40">
-                  Generated on {new Date(summary.createdAt).toLocaleDateString('en-US', {
+                  Generated on{' '}
+                  {new Date(summary.createdAt).toLocaleDateString('en-US', {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
@@ -81,10 +95,7 @@ const Summary = ({ documentId }) => {
                   })}
                 </p>
               </div>
-              <button
-                onClick={handleCopy}
-                className="btn-secondary flex items-center gap-2"
-              >
+              <button onClick={handleCopy} className="btn-secondary flex items-center gap-2">
                 {copied ? (
                   <>
                     <CheckCircle className="w-4 h-4 text-green-400" />
@@ -101,7 +112,7 @@ const Summary = ({ documentId }) => {
 
             <div className="prose prose-invert max-w-none">
               <div className="text-white/90 leading-relaxed whitespace-pre-line">
-                {summary.text}
+                {summary.content}
               </div>
             </div>
           </div>

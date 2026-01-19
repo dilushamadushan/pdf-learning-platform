@@ -184,16 +184,30 @@ export const chatWithContext = async (question, chunks) => {
       .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
       .join("\n\n");
 
-    const prompt = `Answer strictly from the document context.
-                If not found, say so.
+    const prompt = `You are an AI assistant.
 
-                Context:
-                ${context}
+                  RULES:
+                  1. If the user greets you (examples: "hi", "hello", "hey", "good morning", "good evening"):
+                     - Respond politely and briefly.
+                     - Do NOT use the document context.
+                     - Do NOT mention the document.
 
-                Question: ${question}
+                  2. For all other questions:
+                     - Answer STRICTLY using the provided document context.
+                     - If the answer is not found in the context, clearly say:
+                       "The requested information is not available in the provided document."
 
-                Answer:
-                `;
+                  3. Do not make assumptions.
+                  4. Do not add external knowledge.
+
+                  DOCUMENT CONTEXT:
+                  ${context}
+
+                  USER QUESTION:
+                  ${question}
+
+                  ANSWER:
+                  `;
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",

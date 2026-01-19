@@ -2,9 +2,12 @@ import Summary from "../model/Summary.js";
 
 export const getAllSummaries = async (req, res, next) => {
   try {
-    const { documentId } = req.query;
+    const { id } = req.params;
 
-    const filter = documentId ? { documentId } : {};
+    const filter = {};
+    if (id) {
+      filter.documentId = id;
+    }
 
     const summaries = await Summary.find(filter)
       .populate("documentId", "fileName")

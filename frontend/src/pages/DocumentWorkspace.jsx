@@ -101,7 +101,7 @@ const DocumentWorkspace = () => {
 
         {/* Right Panel - Content */}
         <div className="flex-1 flex flex-col min-w-0 gap-4">
-          Tabs
+          
           <Tabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
           {/* Content */}

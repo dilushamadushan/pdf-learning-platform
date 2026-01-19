@@ -57,7 +57,7 @@ export const generaetFlashCards = async (req, res) => {
 
 export const generaetQuizs = async (req, res) => {
   try {
-    const { documentId, numQuestion = 5, title } = req.body;
+    const { documentId } = req.body;
 
     if (!documentId) {
       return res.status(400).json({ message: "Please provide document" });
@@ -70,7 +70,7 @@ export const generaetQuizs = async (req, res) => {
 
     const generatedQuestions = await geminiService.generateQuize(
       document.extractedText,
-      Number(numQuestion)
+      Number(5)
     );
 
     if (!Array.isArray(generatedQuestions) || !generatedQuestions.length) {
@@ -81,7 +81,7 @@ export const generaetQuizs = async (req, res) => {
 
     const quiz = await Quize.create({
       documentId,
-      title: title || "Generated Quiz",
+      title: "Generated Quiz",
       questions: generatedQuestions.map((q) => ({
         question: q.question,
         options: q.options,

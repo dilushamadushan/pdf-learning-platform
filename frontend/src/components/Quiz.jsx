@@ -1,35 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Sparkles, CheckCircle, XCircle, Trophy } from 'lucide-react';
-import {  } from '../services/api';
-import { useDocuments } from '../context/DocumentContext';
+import api from '../services/api';
 
 const Quiz = ({ documentId }) => {
-  const { documents, addQuiz, updateQuizScore } = useDocuments();
   const [generating, setGenerating] = useState(false);
+  const [quizzes, setQuizzes] = useState([]);
   const [selectedQuiz, setSelectedQuiz] = useState(0);
   const [answers, setAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
 
-  const currentDoc = documents.find(d => d.id === documentId);
-  const quizzes = currentDoc?.quizzes || [];
-  const pdfFile = currentDoc?.pdfFile;
-  const activeQuiz = quizzes[selectedQuiz];
+  const activeQuiz = quizzes[selectedQuiz]; 
+
+  useEffect(() => {
+    const fetchQuizzes = async () => {
+      if (!documentId) return;
+      try {
+        const res = await api.get(`/quizzes/${documentId}`);
+        setQuizzes(res.data.data || []);
+        setSelectedQuiz(0);
+        setAnswers({});
+        setShowResults(false);
+      } catch (err) {
+        console.error('Failed to load quizzes', err);
+      }
+    };
+    fetchQuizzes();
+  }, [documentId]);
+
 
   const handleGenerate = async () => {
-    if (!pdfFile) {
-      alert('Please upload a PDF first');
-      return;
-    }
-
+    if (!documentId) return;
     setGenerating(true);
     try {
-      const response = await apiService.generateQuiz(documentId, pdfFile);
-      addQuiz(documentId, response);
-      setSelectedQuiz(quizzes.length);
+      await api.post('/quizzes/generate', { documentId }); 
+      const res = await api.get(`/quizzes/${documentId}`); 
+      setQuizzes(res.data.data || []);
+      setSelectedQuiz(res.data.data.length - 1);
       setAnswers({});
       setShowResults(false);
-    } catch (error) {
-      console.error('Failed to generate quiz:', error);
+    } catch (err) {
+      console.error('Failed to generate quiz:', err);
       alert('Failed to generate quiz');
     } finally {
       setGenerating(false);
@@ -38,13 +48,11 @@ const Quiz = ({ documentId }) => {
 
   const handleAnswerSelect = (questionId, optionIndex) => {
     if (showResults) return;
-    setAnswers(prev => ({
-      ...prev,
-      [questionId]: optionIndex,
-    }));
+    setAnswers(prev => ({ ...prev, [questionId]: optionIndex }));
   };
 
   const handleSubmit = () => {
+    if (!activeQuiz) return;
     if (Object.keys(answers).length < activeQuiz.questions.length) {
       alert('Please answer all questions');
       return;
@@ -52,13 +60,18 @@ const Quiz = ({ documentId }) => {
 
     let correct = 0;
     activeQuiz.questions.forEach(q => {
-      if (answers[q.id] === q.correctAnswer) {
-        correct++;
-      }
+      if (answers[q._id] === q.correctAnswer) correct++;
     });
 
     const score = Math.round((correct / activeQuiz.questions.length) * 100);
-    updateQuizScore(documentId, activeQuiz.id, score);
+
+    // Update quiz score locally (you can also call an API here)
+    setQuizzes(prev => {
+      const updated = [...prev];
+      updated[selectedQuiz] = { ...updated[selectedQuiz], completed: true, score };
+      return updated;
+    });
+
     setShowResults(true);
   };
 
@@ -71,13 +84,7 @@ const Quiz = ({ documentId }) => {
     <div className="h-full flex flex-col animate-slide-in-right">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold font-display">Quiz</h2>
-        <button
-          onClick={handleGenerate}
-          disabled={!pdfFile || generating}
-          className={`btn-primary flex items-center gap-2 ${
-            (!pdfFile || generating) ? 'opacity-50 cursor-not-allowed' : ''
-          }`}
-        >
+        <button onClick={handleGenerate} className="btn-primary flex items-center gap-2">
           <Sparkles className={`w-4 h-4 ${generating ? 'animate-spin' : ''}`} />
           {generating ? 'Generating...' : 'Generate New Quiz'}
         </button>
@@ -87,10 +94,10 @@ const Quiz = ({ documentId }) => {
         <div className="flex gap-2 mb-6 overflow-x-auto scrollbar-hide">
           {quizzes.map((quiz, index) => (
             <button
-              key={quiz.id}
+              key={quiz._id}
               onClick={() => {
                 setSelectedQuiz(index);
-                setShowResults(quiz.completed);
+                setShowResults(quiz.completed || false);
                 setAnswers({});
               }}
               className={`px-4 py-2 rounded-lg whitespace-nowrap transition-all duration-300 ${
@@ -100,11 +107,7 @@ const Quiz = ({ documentId }) => {
               }`}
             >
               Quiz {index + 1}
-              {quiz.completed && (
-                <span className="ml-2 text-xs">
-                  ({quiz.score}%)
-                </span>
-              )}
+              {quiz.completed && <span className="ml-2 text-xs">({quiz.score}%)</span>}
             </button>
           ))}
         </div>
@@ -124,7 +127,8 @@ const Quiz = ({ documentId }) => {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto scrollbar-hide">
-          {showResults && activeQuiz.completed && (
+          {/* Quiz Results */}
+          {showResults && activeQuiz?.completed && (
             <div className="glass-card p-6 mb-6 bg-gradient-to-r from-accent-primary/10 to-accent-tertiary/10 border-accent-primary/30 animate-slide-up">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
@@ -136,25 +140,23 @@ const Quiz = ({ documentId }) => {
                     <p className="text-white/60">Your Score: {activeQuiz.score}%</p>
                   </div>
                 </div>
-                <button
-                  onClick={handleRetry}
-                  className="btn-secondary"
-                >
+                <button onClick={handleRetry} className="btn-secondary">
                   Retry Quiz
                 </button>
               </div>
             </div>
           )}
 
+          {/* Questions */}
           <div className="space-y-6">
             {activeQuiz?.questions.map((question, qIndex) => {
-              const userAnswer = answers[question.id];
+              const userAnswer = answers[question._id];
               const isCorrect = userAnswer === question.correctAnswer;
               const showAnswer = showResults;
 
               return (
                 <div
-                  key={question.id}
+                  key={question._id}
                   className="glass-card p-6 animate-slide-up"
                   style={{ animationDelay: `${qIndex * 0.1}s` }}
                 >
@@ -162,24 +164,23 @@ const Quiz = ({ documentId }) => {
                     <span className="px-3 py-1 bg-accent-primary/20 text-accent-primary rounded-lg text-sm font-medium">
                       Q{qIndex + 1}
                     </span>
-                    {showAnswer && (
-                      isCorrect ? (
+                    {showAnswer &&
+                      (isCorrect ? (
                         <CheckCircle className="w-5 h-5 text-green-400 mt-1" />
                       ) : (
                         <XCircle className="w-5 h-5 text-red-400 mt-1" />
-                      )
-                    )}
+                      ))}
                   </div>
-                  
+
                   <p className="text-lg mb-4">{question.question}</p>
-                  
+
                   <div className="space-y-3">
                     {question.options.map((option, oIndex) => {
-                      const isSelected = userAnswer === oIndex;
-                      const isCorrectOption = oIndex === question.correctAnswer;
-                      
+                      const isSelected = userAnswer === option;
+                      const isCorrectOption = option === question.correctAnswer;
+
                       let className = 'p-4 rounded-xl border transition-all duration-300 cursor-pointer ';
-                      
+
                       if (showAnswer) {
                         if (isCorrectOption) {
                           className += 'bg-green-500/10 border-green-400/50 ';
@@ -199,18 +200,16 @@ const Quiz = ({ documentId }) => {
                       return (
                         <div
                           key={oIndex}
-                          onClick={() => handleAnswerSelect(question.id, oIndex)}
+                          onClick={() => handleAnswerSelect(question._id, option)}
                           className={className}
                         >
                           <div className="flex items-center gap-3">
-                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                              isSelected 
-                                ? 'border-accent-primary bg-accent-primary' 
-                                : 'border-white/40'
-                            }`}>
-                              {isSelected && (
-                                <div className="w-2 h-2 rounded-full bg-dark-900" />
-                              )}
+                            <div
+                              className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                                isSelected ? 'border-accent-primary bg-accent-primary' : 'border-white/40'
+                              }`}
+                            >
+                              {isSelected && <div className="w-2 h-2 rounded-full bg-dark-900" />}
                             </div>
                             <span>{option}</span>
                           </div>
@@ -225,10 +224,7 @@ const Quiz = ({ documentId }) => {
 
           {!showResults && (
             <div className="sticky bottom-0 mt-6 pt-6 bg-dark-900/80 backdrop-blur-sm">
-              <button
-                onClick={handleSubmit}
-                className="btn-primary w-full"
-              >
+              <button onClick={handleSubmit} className="btn-primary w-full">
                 Submit Quiz
               </button>
             </div>

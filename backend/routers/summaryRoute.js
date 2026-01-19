@@ -5,7 +5,7 @@ import { generateSummary } from "../controller/aiController.js";
 const router = express.Router();
 
 router.post("/generate", generateSummary);
-router.get("/", getAllSummaries);
+router.get("/:id", getAllSummaries);
 router.delete("/:id", deleteSummary);
 
 export default router;

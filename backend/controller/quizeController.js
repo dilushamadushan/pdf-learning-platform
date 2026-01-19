@@ -2,11 +2,11 @@ import Quize from "../model/Quize.js";
 
 export const getAllQuizzes = async (req, res) => {
   try {
-    const { documentId } = req.query;
+    const { id } = req.params;
 
     const filter = {};
-    if (documentId) {
-      filter.documentId = documentId;
+    if (id) {
+      filter.documentId = id;
     }
 
     const quizzes = await Quize.find(filter)
