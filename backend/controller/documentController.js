@@ -75,3 +75,26 @@ const processPdf = async (documentId, filePath) => {
     }
 };
 
+
+export const getAllDocs = async (req, res) => {
+  try {
+    const documents = await Document.find();
+    res.status(200).json(documents);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
+export const getDocById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const document = await Document.findById(id);
+
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }   
+    res.status(200).json(document);
+    } catch (error) { 
+    res.status(500).json({ error: error.message });
+  }
+};

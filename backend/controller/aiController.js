@@ -8,7 +8,7 @@ import Summary from "../model/Summary.js";
 
 export const generaetFlashCards = async (req, res) => {
   try {
-    const { documentId, count = 10 } = req.body;
+    const { documentId } = req.body;
 
     if (!documentId) {
       return res.status(400).json({ message: "Please provide document" });
@@ -22,7 +22,7 @@ export const generaetFlashCards = async (req, res) => {
     // 1️⃣ Generate flashcards from AI
     const generatedCards = await geminiService.generateFlashCard(
       document.extractedText,
-      Number(count)
+      Number(5)
     );
 
     if (!Array.isArray(generatedCards) || !generatedCards.length) {

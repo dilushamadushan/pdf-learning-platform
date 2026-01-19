@@ -1,1 +1,104 @@
-@import "tailwindcss"; 
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-dark-900 text-white font-body antialiased;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(0, 217, 255, 0.05) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(255, 0, 110, 0.05) 0px, transparent 50%);
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-dark-800/50 backdrop-blur-xl border border-white/10 rounded-2xl;
+  }
+  
+  .btn-primary {
+    @apply px-6 py-3 bg-gradient-to-r from-accent-primary to-accent-tertiary text-dark-900 font-medium rounded-xl 
+           hover:shadow-lg hover:shadow-accent-primary/30 transition-all duration-300 
+           hover:scale-105 active:scale-95;
+  }
+  
+  .btn-secondary {
+    @apply px-6 py-3 bg-dark-700 border border-white/10 rounded-xl 
+           hover:bg-dark-600 hover:border-accent-primary/50 transition-all duration-300;
+  }
+  
+  .input-field {
+    @apply w-full px-4 py-3 bg-dark-700 border border-white/10 rounded-xl 
+           focus:border-accent-primary focus:outline-none focus:ring-2 focus:ring-accent-primary/20
+           transition-all duration-300 placeholder-white/40;
+  }
+  
+  .tab-button {
+    @apply px-6 py-3 rounded-xl font-medium transition-all duration-300;
+  }
+  
+  .tab-active {
+    @apply bg-dark-700 text-accent-primary border-b-2 border-accent-primary;
+  }
+  
+  .tab-inactive {
+    @apply text-white/60 hover:text-white hover:bg-dark-800/50;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-gradient-to-r from-accent-primary via-accent-tertiary to-accent-secondary bg-clip-text text-transparent;
+  }
+  
+  .glow {
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #13151a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #25282f;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00d9ff;
+}
+
+/* 3D Flip Animation */
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.transform-style-3d {
+  transform-style: preserve-3d;
+}
+
+.backface-hidden {
+  backface-visibility: hidden;
+}
+
+.rotate-y-180 {
+  transform: rotateY(180deg);
+}

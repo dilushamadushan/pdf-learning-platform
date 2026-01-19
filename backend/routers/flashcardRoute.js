@@ -5,7 +5,7 @@ import { generaetFlashCards } from '../controller/aiController.js';
 const router = express.Router();
 
 router.post("/generate", generaetFlashCards);
-router.get('/', getAllFlashcards);
+router.get('/:id', getAllFlashcards);
 router.delete('/:id', deleteFlashcard);
 
 export default router;

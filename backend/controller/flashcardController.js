@@ -3,11 +3,11 @@ import Flashcard from "../model/Flashcard.js";
 
 export const getAllFlashcards = async (req, res) => {
   try {
-    const { documentId } = req.query;
+    const { id } = req.params;
 
     const filter = {};
-    if (documentId) {
-      filter.documentId = documentId;
+    if (id) {
+      filter.documentId = id;
     }
 
     const flashcards = await Flashcard.find(filter)
