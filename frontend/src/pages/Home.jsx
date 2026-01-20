@@ -14,11 +14,11 @@ const Home = () => {
   const handleCreateDocument = async () => {
     const title = newDocTitle.trim() || "Untitled Document";
 
-    const newDoc = await createDocument(title); // ✅ from context
+    const newDoc = await createDocument(title); 
 
     setNewDocTitle("");
     setShowCreateModal(false);
-    navigate(`/document/${newDoc._id}`); // ✅ correct id
+    navigate(`/document/${newDoc._id}`); 
   };
 
   if (loading) return <p>Loading...</p>;
@@ -65,7 +65,6 @@ const Home = () => {
           <p className="text-center text-white/40 mt-10">No documents yet.</p>
         )}
       </div>
-      {/* Create Modal */}
       {showCreateModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
           

@@ -1,6 +1,9 @@
 import { extractTextFromPDF } from "../utils/pdfParser.js"; 
 import { chunkText } from "../utils/textChunker.js"; 
 import Document from "../model/Document.js";
+import Flashcard from "../model/Flashcard.js";
+import Summary from "../model/Summary.js";
+import Qiza from "../model/Quize.js";
 
 export const createNewDoc = async (req, res) => {
   try {
@@ -11,14 +14,10 @@ export const createNewDoc = async (req, res) => {
   }
 };
 
-/**
- * Upload PDF document
- */
 export const uploadDoc = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // 1. Validate file
     if (!req.file) {
       return res.status(400).json({ message: "Please upload a PDF file" });
     }
@@ -27,7 +26,6 @@ export const uploadDoc = async (req, res) => {
 
     let document;
 
-    // 2. If ID exists → UPDATE
     if (id) {
       document = await Document.findById(id);
 
@@ -41,7 +39,6 @@ export const uploadDoc = async (req, res) => {
       await document.save();
     }
 
-    // 4. Process PDF asynchronously
     processPdf(document._id, req.file.path);
 
     res.status(201).json({
@@ -55,10 +52,6 @@ export const uploadDoc = async (req, res) => {
   }
 };
 
-
-/**
- * Extract text & chunk PDF
- */
 const processPdf = async (documentId, filePath) => {
     try {
         const { text } = await extractTextFromPDF(filePath);
@@ -95,6 +88,30 @@ export const getDocById = async (req, res) => {
     }   
     res.status(200).json(document);
     } catch (error) { 
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const deleteDoc = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if document exists
+    const document = await Document.findById(id);
+    if (!document) {
+      return res.status(404).json({ message: "Document not found" });
+    }
+
+    // Delete document
+    await Document.findByIdAndDelete(id);
+
+    // Delete related data
+    await Flashcard.deleteMany({ documentId: id });
+    await Summary.deleteMany({ documentId: id });
+    await Qiza.deleteMany({ documentId: id });
+
+    res.status(200).json({ message: "Document deleted successfully" });
+  } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };

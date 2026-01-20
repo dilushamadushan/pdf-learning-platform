@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-// Configure axios instance
 const api = axios.create({
   baseURL:'http://localhost:8000/api',
   headers: {
@@ -24,6 +23,15 @@ export const getAllLearningSessions = async () => {
   } catch (error) {
     return error.response.data;
 }
+};
+
+export const deleteLearningSession = async (documentId) => {
+  try {
+    const response = await api.delete(`/documents/${documentId}`);
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
 };
 
 export default api;

@@ -19,7 +19,6 @@ export const generaetFlashCards = async (req, res) => {
       return res.status(404).json({ message: "Document not found." });
     }
 
-    // 1️⃣ Generate flashcards from AI
     const generatedCards = await geminiService.generateFlashCard(
       document.extractedText,
       Number(5)
@@ -31,7 +30,6 @@ export const generaetFlashCards = async (req, res) => {
       });
     }
 
-    // 2️⃣ Prepare flashcards for DB
     const flashcardsToSave = generatedCards.map((card) => ({
       question: card.question,
       answer: card.answer,
@@ -39,7 +37,6 @@ export const generaetFlashCards = async (req, res) => {
       documentId,
     }));
 
-    // 3️⃣ Save to database (bulk insert)
     const savedFlashcards = await Flashcard.insertMany(flashcardsToSave);
 
     res.status(201).json({
@@ -117,7 +114,6 @@ export const generateSummary = async (req, res, next) => {
       return res.status(404).json({ message: "Document not found." });
     }
 
-    // Generate summary using AI
     const summaryText = await geminiService.generateSummary(
       document.extractedText
     );
@@ -155,7 +151,6 @@ export const generaetChat = async (req, res) => {
     if (!document)
       return res.status(404).json({ message: "Document not found" });
 
-    // ✅ CALL FUNCTION PROPERLY
     const relevantChunks = findRelevantChunks(document.chunks, question);
 
     if (!relevantChunks.length) {

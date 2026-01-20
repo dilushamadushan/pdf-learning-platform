@@ -99,7 +99,6 @@ export const generateQuize = async (text, numberQuestions = 5) => {
       contents: prompt,
     });
 
-    // ✅ EXTRACT TEXT CORRECTLY
     const generatedText = response?.candidates?.[0]?.content?.parts
       ?.map((p) => p.text || "")
       .join("");
@@ -184,30 +183,39 @@ export const chatWithContext = async (question, chunks) => {
       .map((c, i) => `[Chunk ${i + 1}]\n${c.content}`)
       .join("\n\n");
 
-    const prompt = `You are an AI assistant.
+const prompt = `
+              You are an AI assistant.
 
-                  RULES:
-                  1. If the user greets you (examples: "hi", "hello", "hey", "good morning", "good evening"):
-                     - Respond politely and briefly.
-                     - Do NOT use the document context.
-                     - Do NOT mention the document.
+              RULES:
 
-                  2. For all other questions:
-                     - Answer STRICTLY using the provided document context.
-                     - If the answer is not found in the context, clearly say:
-                       "The requested information is not available in the provided document."
+              1. If the user greets you (examples: "hi", "hello", "hey", "good morning", "good evening"):
+                 - Respond politely and briefly.
+                 - Do NOT use the document context.
+                 - Do NOT mention the document.
+                 - Do NOT perform global search.
 
-                  3. Do not make assumptions.
-                  4. Do not add external knowledge.
+              2. For all other questions:
+                 - FIRST, search and answer using the provided DOCUMENT CONTEXT.
+                 - If the answer is clearly found in the document:
+                   - Answer ONLY using the document.
+                   - Do NOT add any external or global knowledge.
+                 - If the answer is NOT found or is incomplete in the document:
+                   - Then use general/global knowledge to provide a helpful and accurate answer.
+                   - Clearly indicate that the answer is based on general knowledge, not the document.
 
-                  DOCUMENT CONTEXT:
-                  ${context}
+              3. Do not make assumptions.
+              4. Do not hallucinate missing details.
+              5. Keep answers concise, clear, and relevant.
 
-                  USER QUESTION:
-                  ${question}
+              DOCUMENT CONTEXT:
+              ${context}
 
-                  ANSWER:
-                  `;
+              USER QUESTION:
+              ${question}
+
+              ANSWER:
+              `;
+
 
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash-lite",

@@ -4,7 +4,6 @@ import fs from "fs";
 
 const uploadDir = "upload/documents";
 
-// create folder if not exists
 if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
 }
@@ -31,7 +30,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({
     storage,
     fileFilter,
-    limits: { fileSize: 50 * 1024 * 1024 } // 10MB
+    limits: { fileSize: 50 * 1024 * 1024 } 
 });
 
 export default upload;

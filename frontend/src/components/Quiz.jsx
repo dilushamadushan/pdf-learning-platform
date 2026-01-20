@@ -65,7 +65,6 @@ const Quiz = ({ documentId }) => {
 
     const score = Math.round((correct / activeQuiz.questions.length) * 100);
 
-    // Update quiz score locally (you can also call an API here)
     setQuizzes(prev => {
       const updated = [...prev];
       updated[selectedQuiz] = { ...updated[selectedQuiz], completed: true, score };
@@ -127,7 +126,6 @@ const Quiz = ({ documentId }) => {
         </div>
       ) : (
         <div className="flex-1 overflow-y-auto scrollbar-hide">
-          {/* Quiz Results */}
           {showResults && activeQuiz?.completed && (
             <div className="glass-card p-6 mb-6 bg-gradient-to-r from-accent-primary/10 to-accent-tertiary/10 border-accent-primary/30 animate-slide-up">
               <div className="flex items-center justify-between">
@@ -147,7 +145,6 @@ const Quiz = ({ documentId }) => {
             </div>
           )}
 
-          {/* Questions */}
           <div className="space-y-6">
             {activeQuiz?.questions.map((question, qIndex) => {
               const userAnswer = answers[question._id];

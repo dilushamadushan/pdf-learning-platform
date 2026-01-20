@@ -25,7 +25,6 @@ const FlashcardCard = ({ card, index }) => {
       onClick={() => setFlipped(!flipped)}
     >
       <div className={`relative w-full h-full transition-all duration-500 transform-style-3d ${flipped ? 'rotate-y-180' : ''}`}>
-        {/* Front */}
         <div className="absolute w-full h-full backface-hidden">
           <div className="glass-card p-6 h-full flex flex-col justify-between hover:border-accent-primary/50 transition-all duration-300">
             <div>
@@ -41,7 +40,6 @@ const FlashcardCard = ({ card, index }) => {
           </div>
         </div>
 
-        {/* Back */}
         <div className="absolute w-full h-full backface-hidden rotate-y-180">
           <div className="glass-card p-6 h-full flex flex-col justify-between bg-gradient-to-br from-accent-primary/5 to-accent-tertiary/5 border-accent-primary/30 hover:border-accent-primary/50 transition-all duration-300">
             <div>
@@ -84,7 +82,6 @@ const Flashcards = ({ documentId }) => {
     setGenerating(true);
     try {
       await api.post('/flashcards/generate', { documentId });
-      // Fetch after generation
       const res = await api.get(`/flashcards/${documentId}`);
       setCards(res.data.data || []);
     } catch (error) {

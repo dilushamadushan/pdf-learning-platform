@@ -1,7 +1,8 @@
 import { createContext, useContext, useEffect, useState } from 'react';
 import { 
   getAllLearningSessions,
-  createNewLearningSession
+  createNewLearningSession,
+  deleteLearningSession
 } from '../services/api';
 
 const DocumentContext = createContext(null);
@@ -18,7 +19,6 @@ export const DocumentProvider = ({ children }) => {
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Fetch all docs
   useEffect(() => {
     const fetchDocs = async () => {
       const data = await getAllLearningSessions();
@@ -28,14 +28,12 @@ export const DocumentProvider = ({ children }) => {
     fetchDocs();
   }, []);
 
-  // ✅ Create document
   const createDocument = async (title) => {
     const newDoc = await createNewLearningSession({ title });
     setDocuments(prev => [newDoc, ...prev]);
     return newDoc;
   };
 
-  // ✅ Delete document
   const deleteDocument = async (id) => {
     await deleteLearningSession(id);
     setDocuments(prev => prev.filter(doc => doc._id !== id));
